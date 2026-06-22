@@ -11,6 +11,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import sqlite3
 from datetime import datetime
 import hashlib
+import os
 
 
 class TextPreprocessor:
@@ -225,6 +226,11 @@ class DatabaseManager:
     
     def init_database(self):
         """Initialize database with required tables"""
+        # Create database directory if it doesn't exist
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+        
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
