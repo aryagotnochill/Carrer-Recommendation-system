@@ -483,13 +483,15 @@ def main():
             with col1:
                 st.plotly_chart(
                     display_demands_chart(recommendations),
-                    use_container_width=True
+                    use_container_width=True,
+                    key="demand_chart_tab1"
                 )
             
             with col2:
                 st.plotly_chart(
                     display_salary_chart(recommendations),
-                    use_container_width=True
+                    use_container_width=True,
+                    key="salary_chart_tab1"
                 )
             
             # Row 2: Match Scores Comparison
@@ -508,7 +510,7 @@ def main():
                     color_continuous_scale='RdYlGn'
                 )
                 fig_scores.update_layout(height=300, showlegend=False)
-                st.plotly_chart(fig_scores, use_container_width=True)
+                st.plotly_chart(fig_scores, use_container_width=True, key="score_chart_tab1")
             
             with col2:
                 # Industry distribution
@@ -529,7 +531,7 @@ def main():
                     title='Career Distribution by Industry'
                 )
                 fig_industry.update_layout(height=300)
-                st.plotly_chart(fig_industry, use_container_width=True)
+                st.plotly_chart(fig_industry, use_container_width=True, key="industry_chart_tab1")
             
             # Row 3: Growth Trends and Career Levels
             col1, col2 = st.columns(2)
@@ -546,7 +548,7 @@ def main():
                     text='count'
                 )
                 fig_growth.update_layout(height=300, showlegend=False, xaxis_tickangle=-45)
-                st.plotly_chart(fig_growth, use_container_width=True)
+                st.plotly_chart(fig_growth, use_container_width=True, key="growth_chart_tab1")
             
             with col2:
                 # Career level distribution
@@ -570,7 +572,7 @@ def main():
                     text='Count'
                 )
                 fig_levels.update_layout(height=300, showlegend=False)
-                st.plotly_chart(fig_levels, use_container_width=True)
+                st.plotly_chart(fig_levels, use_container_width=True, key="level_chart_tab1")
         
         # ====================================================================
         # TAB 2: SKILL GAP ANALYSIS
@@ -612,7 +614,8 @@ def main():
                 st.plotly_chart(
                     display_skills_chart(user_profile['skills'], 
                                         selected_career['required_skills']),
-                    use_container_width=True
+                    use_container_width=True,
+                    key="skills_chart_tab2"
                 )
             
             with col2:
@@ -707,14 +710,16 @@ def main():
                 st.markdown("**Demand Scores**")
                 st.plotly_chart(
                     display_demands_chart(recommendations),
-                    use_container_width=True
+                    use_container_width=True,
+                    key="demand_chart_tab4"
                 )
             
             with col2:
                 st.markdown("**Salary Ranges**")
                 st.plotly_chart(
                     display_salary_chart(recommendations),
-                    use_container_width=True
+                    use_container_width=True,
+                    key="salary_chart_tab4"
                 )
             
             st.divider()
@@ -732,7 +737,7 @@ def main():
                     labels={'growth_trend': 'Growth Trend', 'count': 'Number of Careers'},
                     color='growth_trend'
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True, key="growth_trend_chart_tab4")
         
         # ====================================================================
         # TAB 5: PROJECT SUGGESTIONS
