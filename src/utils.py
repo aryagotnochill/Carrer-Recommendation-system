@@ -332,19 +332,45 @@ class DatabaseManager:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            cursor.execute('''
-                INSERT OR REPLACE INTO user_profiles 
-                (user_id, skills, education, projects, experience_level, interests, preferred_industry, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ''', (
-                user_id,
-                ','.join(profile_data.get('skills', [])),
-                profile_data.get('education', ''),
-                profile_data.get('projects', ''),
-                profile_data.get('experience_level', ''),
-                ','.join(profile_data.get('interests', [])),
-                profile_data.get('preferred_industry', '')
-            ))
+            cursor.execute(
+                'SELECT id FROM user_profiles WHERE user_id = ?', (user_id,)
+            )
+            existing = cursor.fetchone()
+            
+            if existing:
+                cursor.execute('''
+                    UPDATE user_profiles
+                    SET skills = ?,
+                        education = ?,
+                        projects = ?,
+                        experience_level = ?,
+                        interests = ?,
+                        preferred_industry = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE user_id = ?
+                ''', (
+                    ','.join(profile_data.get('skills', [])),
+                    profile_data.get('education', ''),
+                    profile_data.get('projects', ''),
+                    profile_data.get('experience_level', ''),
+                    ','.join(profile_data.get('interests', [])),
+                    profile_data.get('preferred_industry', ''),
+                    user_id
+                ))
+            else:
+                cursor.execute('''
+                    INSERT INTO user_profiles 
+                    (user_id, skills, education, projects, experience_level, interests, preferred_industry, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                ''', (
+                    user_id,
+                    ','.join(profile_data.get('skills', [])),
+                    profile_data.get('education', ''),
+                    profile_data.get('projects', ''),
+                    profile_data.get('experience_level', ''),
+                    ','.join(profile_data.get('interests', [])),
+                    profile_data.get('preferred_industry', '')
+                ))
             
             conn.commit()
             conn.close()
@@ -382,6 +408,29 @@ class DatabaseManager:
             print(f"Error retrieving profile: {e}")
             return None
     
+    def get_or_create_guest_user(self):
+        """Get or create a guest user account for anonymous persistence"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('SELECT id FROM users WHERE username = ?', ('guest',))
+            result = cursor.fetchone()
+            if result:
+                conn.close()
+                return result[0]
+            password_hash = self.hash_password('guest')
+            cursor.execute('''
+                INSERT INTO users (username, password_hash, email)
+                VALUES (?, ?, ?)
+            ''', ('guest', password_hash, 'guest@example.com'))
+            conn.commit()
+            user_id = cursor.lastrowid
+            conn.close()
+            return user_id
+        except Exception as e:
+            print(f"Error getting or creating guest user: {e}")
+            return None
+
     def save_recommendation(self, user_id, career_title, score):
         """Save recommendation history"""
         try:

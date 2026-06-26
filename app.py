@@ -107,6 +107,17 @@ careers_df, skills_taxonomy, all_skills = load_data()
 engine = initialize_engine(careers_df, all_skills)
 db_manager = initialize_database()
 
+# Ensure a guest user exists for persistence
+if st.session_state.user_id is None:
+    st.session_state.user_id = db_manager.get_or_create_guest_user()
+
+# Load saved profile for the guest user, if any
+if st.session_state.user_profile is None and st.session_state.user_id is not None:
+    saved_profile = db_manager.get_user_profile(st.session_state.user_id)
+    if saved_profile:
+        st.session_state.user_profile = saved_profile
+        st.info("Loaded saved profile from the database.")
+
 # Initialize LLM (use mock if no API key)
 llm = get_llm_instance(use_mock=True)  # Set to False if you have API key
 if not isinstance(llm, MockLLM):
@@ -814,7 +825,24 @@ def main():
                 st.info("PDF generation would require additional libraries (reportlab, fpdf2). Check 'Bonus Features' section in main code.")
             
             if st.button("💾 Save My Profile", use_container_width=True):
-                st.success("Profile saved! (Login system required for persistence)")
+                if st.session_state.user_id is not None and user_profile:
+                    profile_saved = db_manager.save_user_profile(st.session_state.user_id, user_profile)
+                    rec_saved = True
+                    for _, career in recommendations.head(5).iterrows():
+                        if not db_manager.save_recommendation(
+                            st.session_state.user_id,
+                            career['title'],
+                            float(career['composite_score'])
+                        ):
+                            rec_saved = False
+                    if profile_saved and rec_saved:
+                        st.success("Profile and recent recommendations saved successfully.")
+                    elif profile_saved:
+                        st.warning("Profile saved, but recommendation history could not be fully saved.")
+                    else:
+                        st.error("Failed to save profile.")
+                else:
+                    st.warning("No profile data available to save.")
             
             # Career comparison
             st.divider()
